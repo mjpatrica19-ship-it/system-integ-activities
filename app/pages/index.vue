@@ -31,12 +31,18 @@
 
           <v-divider class="mb-6" />
 
+          <!-- Leaflet Map -->
+          <ClientOnly>
+            <LeafletMap />
+          </ClientOnly>
+
           <v-btn
             color="primary"
             size="large"
             prepend-icon="mdi-qrcode-scan"
             block
-            class="mb-3"
+            class="mt-4 mb-3"
+             @click="openScanner"
           >
             Open QR Scanner
           </v-btn>
