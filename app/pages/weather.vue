@@ -1,41 +1,136 @@
 <template>
   <div class="page-bg">
-    <div class="weather-card">
-      <h1>🌤 Weather Today</h1>
+    <div class="overlay">
 
-      <div v-if="currentWeather">
-        <h2>{{ currentWeather.location.name }}</h2>
+      <button class="back-btn" @click="navigateTo('/')">
+        ☰
+      </button>
 
-        <img
-          :src="'https:' + currentWeather.current.condition.icon"
-          :alt="currentWeather.current.condition.text"
-        />
+      <div class="search-btn">
+        🔍
+      </div>
 
-        <h3>{{ currentWeather.current.temp_c }}°C</h3>
+      <div v-if="currentWeather" class="weather-container">
 
-        <p>{{ currentWeather.current.condition.text }}</p>
+        <h2 class="city">
+          {{ currentWeather.location.name }}
+        </h2>
 
-        <div class="details">
-          <div>
-            <span>💧 Humidity</span>
-            <strong>{{ currentWeather.current.humidity }}%</strong>
+        <p class="date">
+          {{
+            new Date().toLocaleDateString("en-US",{
+              weekday:"long",
+              month:"long",
+              day:"numeric"
+            })
+          }}
+        </p>
+
+        <div class="current-weather">
+
+          <img
+            class="weather-icon"
+            :src="'https:' + currentWeather.current.condition.icon"
+          />
+
+          <div class="temperature">
+
+            <h1>{{ currentWeather.current.temp_c }}°</h1>
+
+            <div class="minmax">
+              <p>↑ {{ currentWeather.forecast?.forecastday?.[0]?.day?.maxtemp_c ?? "--" }}°</p>
+              <p>↓ {{ currentWeather.forecast?.forecastday?.[0]?.day?.mintemp_c ?? "--" }}°</p>
+            </div>
+
           </div>
 
-          <div>
-            <span>🌬 Wind</span>
+        </div>
+
+        <div class="status">
+
+          <h2>{{ currentWeather.current.condition.text }}</h2>
+
+          <p>
+            Feels Like
+            {{ currentWeather.current.feelslike_c }}°
+          </p>
+
+        </div>
+
+        <div class="weather-info">
+
+          <div class="info-box">
+            😊
+            <span>UV</span>
+            <strong>{{ currentWeather.current.uv }}</strong>
+          </div>
+
+          <div class="info-box">
+            🌬
+            <span>Wind</span>
             <strong>{{ currentWeather.current.wind_kph }} km/h</strong>
           </div>
 
-          <div>
-            <span>🌡 Feels Like</span>
-            <strong>{{ currentWeather.current.feelslike_c }}°C</strong>
+          <div class="info-box">
+            💧
+            <span>Humidity</span>
+            <strong>{{ currentWeather.current.humidity }}%</strong>
           </div>
+
+          <div class="info-box">
+            👁
+            <span>Visibility</span>
+            <strong>{{ currentWeather.current.vis_km }} km</strong>
+          </div>
+          <!-- Hourly Forecast -->
+
+<div class="forecast-card">
+
+  <div class="forecast-tabs">
+    <span class="active">Weather</span>
+    <span>Wind</span>
+    <span>Humidity</span>
+  </div>
+
+  <div class="hourly">
+
+    <div
+      class="hour"
+      v-for="(hour, index) in currentWeather.forecast.forecastday[0].hour.slice(
+        new Date().getHours(),
+        new Date().getHours() + 4
+      )"
+      :key="index"
+    >
+
+      <p>
+        {{
+          index === 0
+            ? "Now"
+            : new Date(hour.time).toLocaleTimeString([], {
+                hour: "numeric",
+                hour12: true
+              })
+        }}
+      </p>
+
+      <img
+        :src="'https:' + hour.condition.icon"
+        class="hour-icon"
+      />
+
+      <h3>{{ hour.temp_c }}°</h3>
+
+    </div>
+
+  </div>
+
+</div>
+
         </div>
+
       </div>
 
-      <div v-else>
-        Loading weather...
-      </div>
     </div>
   </div>
 </template>
@@ -55,8 +150,7 @@ const currentWeather = ref(null)
 const getWeatherData = async () => {
   try {
     const data = await $fetch(
-      "https://api.weatherapi.com/v1/current.json?key=YOUR_API_KEY&q=manila&aqi=no"
-    )
+      "http://api.weatherapi.com/v1/forecast.json?key=06ba74db3be842dfa9535030262906&q=manila&days=1&aqi=no&alerts=no"  )
 
     currentWeather.value = data
   } catch (error) {
@@ -70,76 +164,300 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.page-bg{
-    background-image:url('');
-    background-size:cover;
-    background-position:center;
-    background-repeat:no-repeat;
+.forecast-card{
 
-    width:100%;
-    height:100vh;
+    margin-top:40px;
+
+    padding:25px;
+
+    border-radius:30px 30px 0 0;
+
+    background:rgba(255,255,255,.12);
+
+    backdrop-filter:blur(18px);
+
+}
+
+.forecast-tabs{
+
+    display:flex;
+
+    justify-content:space-around;
+
+    margin-bottom:25px;
+
+    font-size:22px;
+
+    font-weight:bold;
+
+}
+
+.forecast-tabs .active{
+
+    border-bottom:3px solid white;
+
+    padding-bottom:8px;
+
+}
+
+.hourly{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    gap:20px;
+
+    overflow-x:auto;
+
+    padding-bottom:10px;
+
+}
+
+.hour{
+
+    min-width:80px;
+
+    text-align:center;
+
+}
+
+.hour p{
+
+    font-size:16px;
+
+    margin-bottom:10px;
+
+}
+
+.hour-icon{
+
+    width:50px;
+
+    height:50px;
+
+}
+
+.hour h3{
+
+    margin-top:10px;
+
+    font-size:24px;
+
+}
+.page-bg{
+    background:url("/images/sunnyday.jpg") center center/cover;
+    min-height:100vh;
+}
+
+.overlay{
+
+    min-height:100vh;
+    background:rgba(30,55,95,.45);
+    backdrop-filter:blur(6px);
+
+    color:white;
+
+    position:relative;
+
+    padding:30px;
+}
+
+.weather-container{
+
+    max-width:500px;
+    margin:auto;
+    text-align:center;
+}
+
+.back-btn,
+.search-btn{
+
+    position:absolute;
+
+    top:25px;
+
+    width:50px;
+
+    height:50px;
+
+    border:none;
+
+    border-radius:50%;
+
+    background:rgba(255,255,255,.15);
+
+    color:white;
+
+    backdrop-filter:blur(15px);
+
+    font-size:25px;
+
+    cursor:pointer;
+}
+
+.back-btn{
+    left:20px;
+}
+
+.search-btn{
+
+    right:20px;
 
     display:flex;
     justify-content:center;
     align-items:center;
 }
 
-.weather-card{
-    width:380px;
-    padding:30px;
-    border-radius:25px;
+.city{
 
-    background:rgba(255,255,255,.18);
-    backdrop-filter:blur(12px);
+    font-size:42px;
 
-    color:white;
-    text-align:center;
-
-    box-shadow:0 8px 25px rgba(0,0,0,.3);
+    margin-top:30px;
 }
 
-.weather-card h1{
-    margin-bottom:20px;
-    font-size:32px;
+.date{
+
+    opacity:.8;
+
+    margin-bottom:40px;
 }
 
-.weather-card h2{
-    font-size:28px;
-    margin:10px 0;
+.current-weather{
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:30px;
 }
 
-.weather-card h3{
-    font-size:55px;
-    margin:10px 0;
+.weather-icon{
+
+    width:130px;
 }
 
-.weather-card img{
-    width:90px;
-}
+.temperature{
 
-.weather-card p{
-    font-size:20px;
-    margin-bottom:25px;
-}
+    display:flex;
 
-.details{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
+    align-items:center;
+
     gap:15px;
 }
 
-.details div{
-    background:rgba(255,255,255,.15);
-    border-radius:15px;
-    padding:15px;
+.temperature h1{
+
+    font-size:110px;
+
+    margin:0;
+
+    font-weight:600;
 }
 
-.details span{
-    display:block;
+.minmax{
+
+    text-align:left;
+
+    font-size:22px;
+}
+
+.status{
+
+    margin-top:25px;
+}
+
+.status h2{
+
+    font-size:42px;
+
+    margin-bottom:10px;
+}
+
+.status p{
+
+    font-size:22px;
+
+    opacity:.9;
+}
+
+.weather-info{
+
+    display:grid;
+
+    grid-template-columns:repeat(4,1fr);
+
+    gap:15px;
+
+    margin-top:50px;
+}
+
+.info-box{
+
+    background:rgba(255,255,255,.12);
+
+    backdrop-filter:blur(15px);
+
+    border-radius:20px;
+
+    padding:18px;
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    transition:.3s;
+}
+
+.info-box:hover{
+
+    transform:translateY(-5px);
+}
+
+.info-box span{
+
+    margin-top:8px;
+
     font-size:14px;
+
+    opacity:.8;
 }
 
-.details strong{
-    font-size:18px;
+.info-box strong{
+
+    font-size:20px;
+
+    margin-top:5px;
+}
+
+@media(max-width:600px){
+
+.weather-info{
+
+grid-template-columns:repeat(2,1fr);
+
+}
+
+.temperature h1{
+
+font-size:80px;
+
+}
+
+.current-weather{
+
+flex-direction:column;
+
+}
+
+.status h2{
+
+font-size:30px;
+
+}
 }
 </style>
